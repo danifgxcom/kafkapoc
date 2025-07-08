@@ -767,6 +767,18 @@ spring.cloud.stream.bindings.processRabbit-in-0.destination=rabbit-input-queue
 spring.cloud.stream.bindings.processRabbit-out-0.destination=rabbit-output-queue
 spring.cloud.stream.bindings.processRabbit-in-0.binder=rabbit
 spring.cloud.stream.bindings.processRabbit-out-0.binder=rabbit
+
+# Configuracion especial para RabbitMQ
+spring.cloud.stream.rabbit.bindings.processRabbit-in-0.consumer.declare-exchange=true
+spring.cloud.stream.rabbit.bindings.processRabbit-in-0.consumer.auto-bind-dlq=true
+spring.cloud.stream.rabbit.default.consumer.auto-declare=true
+spring.cloud.stream.rabbit.bindings.processRabbit-in-0.consumer.durable=true
+spring.cloud.stream.rabbit.bindings.processRabbit-out-0.producer.durable=true
+spring.cloud.stream.rabbit.bindings.processRabbit-in-0.consumer.queue-name-group=true
+spring.cloud.stream.rabbit.bindings.processRabbit-out-0.producer.exchange-durable=true
+spring.cloud.stream.bindings.processRabbit-in-0.group=rabbit-consumer-group
+spring.cloud.stream.bindings.processRabbit-out-0.producer.required-groups=rabbit-output-group
+spring.cloud.function.definition=processRabbit
 ```
 
 **Explicación de la configuración**:
@@ -779,7 +791,41 @@ spring.cloud.stream.bindings.processRabbit-out-0.binder=rabbit
 - **spring.cloud.stream.bindings.processRabbit-in-0.binder**: Especifica que se debe usar el binder `rabbit` para el canal de entrada.
 - **spring.cloud.stream.bindings.processRabbit-out-0.binder**: Especifica que se debe usar el binder `rabbit` para el canal de salida.
 
-### 4. Diferencias entre Kafka y RabbitMQ
+### 4. Configuracion especial para RabbitMQ
+
+A diferencia de Kafka, RabbitMQ requiere una configuracion adicional para que las colas se creen correctamente. Spring Cloud Stream con RabbitMQ no crea automaticamente las colas a menos que se configure explicitamente:
+
+```properties
+# Configuracion esencial para que RabbitMQ cree las colas
+spring.cloud.stream.rabbit.bindings.processRabbit-in-0.consumer.declare-exchange=true
+spring.cloud.stream.rabbit.bindings.processRabbit-in-0.consumer.auto-bind-dlq=true
+spring.cloud.stream.rabbit.default.consumer.auto-declare=true
+spring.cloud.stream.rabbit.bindings.processRabbit-in-0.consumer.durable=true
+spring.cloud.stream.rabbit.bindings.processRabbit-out-0.producer.durable=true
+spring.cloud.stream.rabbit.bindings.processRabbit-in-0.consumer.queue-name-group=true
+spring.cloud.stream.rabbit.bindings.processRabbit-out-0.producer.exchange-durable=true
+
+# Grupos de consumidores (necesarios para crear colas persistentes)
+spring.cloud.stream.bindings.processRabbit-in-0.group=rabbit-consumer-group
+spring.cloud.stream.bindings.processRabbit-out-0.producer.required-groups=rabbit-output-group
+
+# La clave para forzar la creacion de colas al iniciar
+spring.cloud.function.definition=processRabbit
+```
+
+**Explicacion de las configuraciones:**
+
+1. **declare-exchange=true**: Fuerza la creacion del exchange en RabbitMQ
+2. **auto-bind-dlq=true**: Crea automaticamente una cola de mensajes muertos (DLQ)
+3. **auto-declare=true**: Crea automaticamente los recursos en RabbitMQ
+4. **durable=true**: Hace que las colas persistan aun cuando no hay consumidores
+5. **queue-name-group=true**: Usa el nombre del grupo como parte del nombre de la cola
+6. **exchange-durable=true**: Hace que los exchanges persistan
+7. **group**: Define un grupo de consumidores, necesario para colas durables
+8. **required-groups**: Define grupos de consumidores requeridos para los productores
+9. **spring.cloud.function.definition**: Fuerza a Spring a inicializar la funcion al arrancar
+
+### 5. Diferencias entre Kafka y RabbitMQ
 
 | Característica | Kafka | RabbitMQ |
 |---------------|--------|----------|
@@ -794,7 +840,7 @@ spring.cloud.stream.bindings.processRabbit-out-0.binder=rabbit
 | **Patrones de routing** | Limitados | Muy flexibles |
 | **Transacciones** | Limitadas | ACID completas |
 
-### 5. Ventajas de usar RabbitMQ con Spring Cloud Stream
+### 6. Ventajas de usar RabbitMQ con Spring Cloud Stream
 
 - **Patrones de routing avanzados**: RabbitMQ ofrece exchanges de tipo direct, fanout, topic y headers.
 - **Confirmaciones de mensajes**: Acknowledgments automáticos o manuales.
@@ -805,7 +851,7 @@ spring.cloud.stream.bindings.processRabbit-out-0.binder=rabbit
 - **TTL (Time-To-Live)**: Expiración automática de mensajes.
 - **Plugins extensibles**: Gran ecosistema de plugins para extender funcionalidad.
 
-### 6. Casos de uso ideales para RabbitMQ
+### 7. Casos de uso ideales para RabbitMQ
 
 - **Microservicios síncronos**: Cuando se requiere respuesta inmediata.
 - **Operaciones transaccionales**: Cuando se necesita garantía ACID.

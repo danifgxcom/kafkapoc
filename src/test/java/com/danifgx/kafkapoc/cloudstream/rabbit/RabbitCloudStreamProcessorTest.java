@@ -10,6 +10,9 @@ import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Pruebas unitarias para el procesador de RabbitMQ.
+ */
 class RabbitCloudStreamProcessorTest {
 
     private RabbitCloudStreamProcessor processor;

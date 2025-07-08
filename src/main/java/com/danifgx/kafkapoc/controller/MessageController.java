@@ -1,21 +1,15 @@
 package com.danifgx.kafkapoc.controller;
 
-import com.danifgx.kafkapoc.kafka.KafkaProducerService;
 import com.danifgx.kafkapoc.model.Message;
+import com.danifgx.kafkapoc.service.MessageService;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.http.ResponseEntity;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 /**
  * REST controller for sending messages to different messaging systems.
@@ -26,10 +20,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class MessageController {
 
-    private final KafkaProducerService kafkaProducerService;
-    private final StreamBridge streamBridge;
-    private final KafkaTemplate<String, String> kafkaTemplate;
-    private final ObjectMapper objectMapper;
+    private final MessageService messageService;
 
     /**
      * Send a message using Spring Kafka.
@@ -39,7 +30,7 @@ public class MessageController {
      */
     @PostMapping("/kafka")
     public ResponseEntity<Message> sendKafkaMessage(@RequestBody MessageRequest request) {
-        Message message = kafkaProducerService.sendMessage(request.getContent());
+        Message message = messageService.sendKafkaMessage(request.getContent(), "REST API");
         return ResponseEntity.ok(message);
     }
 
@@ -51,18 +42,7 @@ public class MessageController {
      */
     @PostMapping("/kafka-streams")
     public ResponseEntity<Message> sendKafkaStreamsMessage(@RequestBody MessageRequest request) throws JsonProcessingException {
-        Message message = Message.builder()
-                .id(UUID.randomUUID().toString())
-                .content(request.getContent())
-                .sender("REST API")
-                .timestamp(LocalDateTime.now())
-                .type(Message.MessageType.SIMPLE)
-                .build();
-
-        String messageJson = objectMapper.writeValueAsString(message);
-        kafkaTemplate.send("stream-input", message.getId(), messageJson);
-        log.info("Sent message to Kafka Streams: {}", message);
-
+        Message message = messageService.sendKafkaStreamsMessage(request.getContent(), "REST API");
         return ResponseEntity.ok(message);
     }
 
@@ -74,19 +54,22 @@ public class MessageController {
      */
     @PostMapping("/cloud-stream-kafka")
     public ResponseEntity<Message> sendCloudStreamKafkaMessage(@RequestBody MessageRequest request) {
-        Message message = Message.builder()
-                .id(UUID.randomUUID().toString())
-                .content(request.getContent())
-                .sender("REST API")
-                .timestamp(LocalDateTime.now())
-                .type(Message.MessageType.SIMPLE)
-                .build();
-
-        streamBridge.send("process-in-0", message);
-        log.info("Sent message to Spring Cloud Stream (Kafka): {}", message);
-
+        Message message = messageService.sendCloudStreamKafkaMessage(request.getContent(), "REST API");
         return ResponseEntity.ok(message);
     }
+
+    /**
+     * Send a message using Spring Cloud Stream with RabbitMQ.
+     *
+     * @param request The message request containing the content
+     * @return The sent message
+     */
+    @PostMapping("/cloud-stream-rabbit")
+    public ResponseEntity<Message> sendCloudStreamRabbitMessage(@RequestBody MessageRequest request) {
+        Message message = messageService.sendCloudStreamRabbitMessage(request.getContent(), "REST API");
+        return ResponseEntity.ok(message);
+    }
+
 
     /**
      * Request object for sending messages.

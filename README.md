@@ -29,11 +29,11 @@ This project uses Kafka with KRaft mode, which is the new consensus mechanism th
 
 ## Versions
 
-This project uses the latest versions of all components:
-- Kafka: 7.5.0 (with KRaft mode)
+This project uses the following versions of components:
+- Kafka: Latest (with KRaft mode)
 - RabbitMQ: 3.12
-- Spring Boot: 3.5.3
-- Spring Cloud: 2025.0.0
+- Spring Boot: 3.2.12
+- Spring Cloud: 2023.0.0
 
 ## Running the Application
 
@@ -92,6 +92,22 @@ The `KafkaProducerService` and `KafkaConsumerService` classes demonstrate the tr
 ### 4. Spring Cloud Stream with RabbitMQ
 
 The `RabbitCloudStreamProcessor` class demonstrates how Spring Cloud Stream provides a consistent programming model across different messaging systems. The implementation is almost identical to the Kafka version, but it's configured to use RabbitMQ instead.
+
+RabbitMQ integration offers several advantages:
+- **Message Durability**: RabbitMQ ensures messages are not lost even if the broker restarts
+- **Flexible Routing**: Supports various exchange types (direct, fanout, topic, headers)
+- **Dead Letter Queues**: Automatically handles failed messages
+- **High Availability**: Supports clustering for fault tolerance
+- **Message TTL**: Time-to-live settings for messages
+- **Queue Length Limits**: Controls resource usage
+
+The application uses the following RabbitMQ-specific configurations:
+- **Exchange Declaration**: Automatically creates exchanges if they don't exist
+- **Dead Letter Queue**: Configures DLQ for failed message handling
+- **Durability Settings**: Ensures queues and exchanges persist across restarts
+- **Consumer Groups**: Enables load balancing across multiple instances
+
+To interact with RabbitMQ messages, you can use the `/api/messages/cloud-stream-rabbit` endpoint.
 
 ## Key Takeaways
 
