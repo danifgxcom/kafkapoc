@@ -8,13 +8,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.kafka.config.KafkaStreamsConfiguration;
 
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 /**
@@ -46,13 +44,13 @@ class KafkaStreamsProcessorTest {
                 .build();
 
         // Mock ObjectMapper behavior
-        when(objectMapper.readValue(eq(inputJson), eq(Message.class))).thenReturn(inputMessage);
+        when(objectMapper.readValue(inputJson, Message.class)).thenReturn(inputMessage);
 
         // When - simulate the mapValues function
-        String result = simulateMapValues(inputJson);
+        simulateMapValues(inputJson);
 
         // Then
-        verify(objectMapper).readValue(eq(inputJson), eq(Message.class));
+        verify(objectMapper).readValue(inputJson, Message.class);
         verify(objectMapper).writeValueAsString(any(Message.class));
     }
 
@@ -63,13 +61,13 @@ class KafkaStreamsProcessorTest {
         JsonProcessingException exception = new JsonProcessingException("Processing error") {};
 
         // Mock ObjectMapper behavior
-        when(objectMapper.readValue(eq(inputJson), eq(Message.class))).thenThrow(exception);
+        when(objectMapper.readValue(inputJson, Message.class)).thenThrow(exception);
 
         // When - simulate the mapValues function
         String result = simulateMapValues(inputJson);
 
         // Then
-        verify(objectMapper).readValue(eq(inputJson), eq(Message.class));
+        verify(objectMapper).readValue(inputJson, Message.class);
         // Should return the original value in case of error
         assertEquals(inputJson, result);
     }

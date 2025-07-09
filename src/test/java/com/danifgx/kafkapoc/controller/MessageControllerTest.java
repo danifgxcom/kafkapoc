@@ -16,7 +16,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -57,7 +56,7 @@ class MessageControllerTest {
                 .type(Message.MessageType.SIMPLE)
                 .build();
 
-        when(messageService.sendKafkaMessage(eq(content), eq("REST API"))).thenReturn(message);
+        when(messageService.sendKafkaMessage(content, "REST API")).thenReturn(message);
 
         // When & Then
         mockMvc.perform(post("/api/messages/kafka")
@@ -69,7 +68,7 @@ class MessageControllerTest {
                 .andExpect(jsonPath("$.sender").value(message.getSender()))
                 .andExpect(jsonPath("$.type").value(message.getType().toString()));
 
-        verify(messageService).sendKafkaMessage(eq(content), eq("REST API"));
+        verify(messageService).sendKafkaMessage(content, "REST API");
     }
 
     @Test
@@ -87,7 +86,7 @@ class MessageControllerTest {
                 .type(Message.MessageType.SIMPLE)
                 .build();
 
-        when(messageService.sendKafkaStreamsMessage(eq(content), eq("REST API"))).thenReturn(message);
+        when(messageService.sendKafkaStreamsMessage(content, "REST API")).thenReturn(message);
 
         // When & Then
         mockMvc.perform(post("/api/messages/kafka-streams")
@@ -98,7 +97,7 @@ class MessageControllerTest {
                 .andExpect(jsonPath("$.sender").value("REST API"))
                 .andExpect(jsonPath("$.type").value("SIMPLE"));
 
-        verify(messageService).sendKafkaStreamsMessage(eq(content), eq("REST API"));
+        verify(messageService).sendKafkaStreamsMessage(content, "REST API");
     }
 
     @Test
@@ -116,7 +115,7 @@ class MessageControllerTest {
                 .type(Message.MessageType.SIMPLE)
                 .build();
 
-        when(messageService.sendCloudStreamKafkaMessage(eq(content), eq("REST API"))).thenReturn(message);
+        when(messageService.sendCloudStreamKafkaMessage(content, "REST API")).thenReturn(message);
 
         // When & Then
         mockMvc.perform(post("/api/messages/cloud-stream-kafka")
@@ -127,7 +126,7 @@ class MessageControllerTest {
                 .andExpect(jsonPath("$.sender").value("REST API"))
                 .andExpect(jsonPath("$.type").value("SIMPLE"));
 
-        verify(messageService).sendCloudStreamKafkaMessage(eq(content), eq("REST API"));
+        verify(messageService).sendCloudStreamKafkaMessage(content, "REST API");
     }
 
     @Test
@@ -145,7 +144,7 @@ class MessageControllerTest {
                 .type(Message.MessageType.SIMPLE)
                 .build();
 
-        when(messageService.sendCloudStreamRabbitMessage(eq(content), eq("REST API"))).thenReturn(message);
+        when(messageService.sendCloudStreamRabbitMessage(content, "REST API")).thenReturn(message);
 
         // When & Then
         mockMvc.perform(post("/api/messages/cloud-stream-rabbit")
@@ -156,6 +155,6 @@ class MessageControllerTest {
                 .andExpect(jsonPath("$.sender").value("REST API"))
                 .andExpect(jsonPath("$.type").value("SIMPLE"));
 
-        verify(messageService).sendCloudStreamRabbitMessage(eq(content), eq("REST API"));
+        verify(messageService).sendCloudStreamRabbitMessage(content, "REST API");
     }
 }

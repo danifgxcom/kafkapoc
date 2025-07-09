@@ -35,9 +35,14 @@ public class MessageService {
      * @return The sent message
      */
     public Message sendKafkaMessage(String content, String sender) {
-        Message message = kafkaProducerService.sendMessage(content);
-        log.info("Sent message using Spring Kafka: {}", message);
-        return message;
+        try {
+            Message message = kafkaProducerService.sendMessage(content);
+            log.info("Sent message using Spring Kafka: {}", message);
+            return message;
+        } catch (Exception e) {
+            log.error("Error sending message using Spring Kafka: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to send message using Spring Kafka", e);
+        }
     }
 
     /**
@@ -49,19 +54,27 @@ public class MessageService {
      * @throws JsonProcessingException if there's an error processing the message
      */
     public Message sendKafkaStreamsMessage(String content, String sender) throws JsonProcessingException {
-        Message message = Message.builder()
-                .id(UUID.randomUUID().toString())
-                .content(content)
-                .sender(sender)
-                .timestamp(LocalDateTime.now())
-                .type(Message.MessageType.SIMPLE)
-                .build();
+        try {
+            Message message = Message.builder()
+                    .id(UUID.randomUUID().toString())
+                    .content(content)
+                    .sender(sender)
+                    .timestamp(LocalDateTime.now())
+                    .type(Message.MessageType.SIMPLE)
+                    .build();
 
-        String messageJson = objectMapper.writeValueAsString(message);
-        kafkaTemplate.send("stream-input", message.getId(), messageJson);
-        log.info("Sent message to Kafka Streams: {}", message);
-        
-        return message;
+            String messageJson = objectMapper.writeValueAsString(message);
+            kafkaTemplate.send("stream-input", message.getId(), messageJson);
+            log.info("Sent message to Kafka Streams: {}", message);
+            
+            return message;
+        } catch (JsonProcessingException e) {
+            log.error("Error processing message for Kafka Streams: {}", e.getMessage(), e);
+            throw e;
+        } catch (Exception e) {
+            log.error("Error sending message to Kafka Streams: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to send message to Kafka Streams", e);
+        }
     }
 
     /**

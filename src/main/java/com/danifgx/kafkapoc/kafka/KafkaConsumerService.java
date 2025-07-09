@@ -27,33 +27,39 @@ public class KafkaConsumerService {
     @KafkaListener(topics = "simple-messages", groupId = "simple-consumer-group")
     public void consumeMessage(String messageJson) {
         try {
-            // Check if the message is a JSON object or a string
-            Message message;
-            try {
-                // First try to parse as a JSON object
-                JsonNode jsonNode = objectMapper.readTree(messageJson);
-                if (jsonNode.isObject()) {
-                    message = objectMapper.readValue(messageJson, Message.class);
-                } else {
-                    // If it's not an object, treat it as a string
-                    message = Message.builder()
-                            .content(messageJson)
-                            .build();
-                }
-            } catch (JsonProcessingException e) {
-                // If parsing fails, treat it as a string
-                message = Message.builder()
-                        .content(messageJson)
-                        .build();
-            }
-
+            Message message = parseMessage(messageJson);
             log.info("Received message from Kafka: {}", message);
-
-            // In a real application, you would process the message here
             processMessage(message);
         } catch (Exception e) {
             log.error("Error processing message: {}", e.getMessage(), e);
         }
+    }
+
+    private Message parseMessage(String messageJson) {
+        try {
+            // First try to parse as a JSON object
+            JsonNode jsonNode = objectMapper.readTree(messageJson);
+            if (jsonNode.isObject()) {
+                return objectMapper.readValue(messageJson, Message.class);
+            } else {
+                // If it's not an object, treat it as a string
+                return createStringMessage(messageJson);
+            }
+        } catch (JsonProcessingException e) {
+            // If parsing fails, treat it as a string
+            log.debug("Failed to parse as JSON, treating as string: {}", e.getMessage());
+            return createStringMessage(messageJson);
+        }
+    }
+
+    private Message createStringMessage(String content) {
+        return Message.builder()
+                .id(java.util.UUID.randomUUID().toString())
+                .content(content)
+                .sender("Unknown")
+                .timestamp(java.time.LocalDateTime.now())
+                .type(Message.MessageType.SIMPLE)
+                .build();
     }
 
     /**

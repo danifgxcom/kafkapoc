@@ -11,7 +11,6 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafkaStreams;
@@ -36,8 +35,6 @@ public class KafkaStreamsProcessor {
     public KStream<String, String> kStream(StreamsBuilder streamsBuilder) {
         // Create JSON Serde for Message class
         final Serde<String> stringSerde = Serdes.String();
-        final JsonSerde<Message> messageSerde = new JsonSerde<>(Message.class, objectMapper);
-
         // Create a stream from the input topic
         KStream<String, String> inputStream = streamsBuilder.stream(
                 "stream-input", 

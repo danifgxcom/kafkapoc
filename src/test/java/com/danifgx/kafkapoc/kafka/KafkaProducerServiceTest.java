@@ -62,7 +62,7 @@ class KafkaProducerServiceTest {
         assertEquals(content, capturedMessage.getContent());
 
         // Verify KafkaTemplate was called to send the message
-        verify(kafkaTemplate).send(eq("simple-messages"), eq(result.getId()), eq(messageJson));
+        verify(kafkaTemplate).send("simple-messages", result.getId(), messageJson);
     }
 
     @Test

@@ -25,6 +25,9 @@ import java.util.concurrent.TimeUnit;
 @Profile("!test")
 public class MessageRunner implements CommandLineRunner {
 
+    // Timeout for Kafka cluster ID retrieval (in seconds)
+    private static final int KAFKA_CLUSTER_ID_TIMEOUT_SECONDS = 5;
+
     private final MessageService messageService;
     private final KafkaAdmin kafkaAdmin;
     private final ConnectionFactory rabbitConnectionFactory;
@@ -125,7 +128,7 @@ public class MessageRunner implements CommandLineRunner {
         try (AdminClient adminClient = AdminClient.create(kafkaAdmin.getConfigurationProperties())) {
             DescribeClusterResult describeClusterResult = adminClient.describeCluster();
             // Try to get the cluster ID with a timeout
-            describeClusterResult.clusterId().get(5, TimeUnit.SECONDS);
+            describeClusterResult.clusterId().get(KAFKA_CLUSTER_ID_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             return true;
         } catch (Exception e) {
             log.warn("Kafka is not available: {}", e.getMessage());

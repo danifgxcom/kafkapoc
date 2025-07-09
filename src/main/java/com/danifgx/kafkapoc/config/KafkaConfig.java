@@ -1,6 +1,5 @@
 package com.danifgx.kafkapoc.config;
 
-import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -11,8 +10,6 @@ import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.CommonErrorHandler;
 import org.springframework.kafka.listener.DefaultErrorHandler;
-import org.springframework.kafka.listener.KafkaListenerErrorHandler;
-import org.springframework.kafka.support.converter.RecordMessageConverter;
 import org.springframework.util.backoff.FixedBackOff;
 
 import java.util.HashMap;
@@ -24,6 +21,14 @@ import java.util.Map;
 @Configuration
 public class KafkaConfig {
 
+    // Constants for error handling
+    private static final int NO_RETRY_INTERVAL = 0;
+    private static final int NO_RETRY_ATTEMPTS = 0;
+
+    // Constants for Kafka admin client timeouts (in milliseconds)
+    private static final int DEFAULT_REQUEST_TIMEOUT_MS = 5000;
+    private static final int DEFAULT_API_TIMEOUT_MS = 5000;
+
     /**
      * Creates a custom error handler for Kafka listeners.
      * This error handler will log errors but continue processing messages.
@@ -32,9 +37,9 @@ public class KafkaConfig {
      */
     @Bean
     public CommonErrorHandler errorHandler() {
-        // Create a FixedBackOff with 0 interval and 0 max attempts (no retries)
+        // Create a FixedBackOff with no retries
         // This will log the error but continue processing messages
-        DefaultErrorHandler errorHandler = new DefaultErrorHandler(new FixedBackOff(0, 0));
+        DefaultErrorHandler errorHandler = new DefaultErrorHandler(new FixedBackOff(NO_RETRY_INTERVAL, NO_RETRY_ATTEMPTS));
         // Skip deserialization exceptions
         errorHandler.addNotRetryableExceptions(org.springframework.kafka.support.converter.ConversionException.class);
         errorHandler.addNotRetryableExceptions(com.fasterxml.jackson.databind.exc.MismatchedInputException.class);
@@ -69,8 +74,8 @@ public class KafkaConfig {
     public KafkaAdmin kafkaAdmin(@Value("${spring.kafka.bootstrap-servers}") String bootstrapServers) {
         Map<String, Object> configs = new HashMap<>();
         configs.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        configs.put(AdminClientConfig.REQUEST_TIMEOUT_MS_CONFIG, 5000);
-        configs.put(AdminClientConfig.DEFAULT_API_TIMEOUT_MS_CONFIG, 5000);
+        configs.put(AdminClientConfig.REQUEST_TIMEOUT_MS_CONFIG, DEFAULT_REQUEST_TIMEOUT_MS);
+        configs.put(AdminClientConfig.DEFAULT_API_TIMEOUT_MS_CONFIG, DEFAULT_API_TIMEOUT_MS);
         return new KafkaAdmin(configs);
     }
 }
